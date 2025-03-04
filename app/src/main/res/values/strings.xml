@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">GPS_App</string>
+    <string name="dialog_title">Goal Distance</string>
+    <string name="dialog_button">Goal Distance</string>
+
 </resources>
