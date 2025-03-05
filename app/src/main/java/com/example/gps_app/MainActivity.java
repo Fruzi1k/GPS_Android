@@ -23,6 +23,12 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+//TODO Доделать красивый дизайн
+//TODO Правильное считание дистанции
+//TODO добавить кординаты
+//TODO следующий урок
+
+
 public class MainActivity extends AppCompatActivity implements LocListenerInterface{
     private LocationManager locationManager;
     private TextView tvRest, tvTotal,tvVelosity;
