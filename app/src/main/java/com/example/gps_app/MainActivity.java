@@ -1,18 +1,18 @@
 package com.example.gps_app;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Process;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -25,11 +25,13 @@ import androidx.core.view.WindowInsetsCompat;
 
 public class MainActivity extends AppCompatActivity implements LocListenerInterface{
     private LocationManager locationManager;
-    private TextView tvdistance,tvVelocity;
+    private TextView tvRest, tvTotal,tvVelosity;
     private Location lastlocation;
     private MyLocListener myLocListener;
     private  int distance;
     private ProgressBar progressBar;
+    private int disTotal;
+    private int disRest;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,9 +48,12 @@ public class MainActivity extends AppCompatActivity implements LocListenerInterf
 
     //TODO Check sintaksis
     private  void init(){
-        tvVelocity = findViewById(R.id.tvVelosity);
-        tvdistance = findViewById(R.id.tvdistance);
+        tvTotal = findViewById(R.id.tvTotal);
+        tvRest = findViewById(R.id.tvRest);
+        tvVelosity = findViewById(R.id.tvVelosity);
+
         progressBar = findViewById(R.id.progressBar);
+
         progressBar.setMax(1000);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         myLocListener = new MyLocListener();
@@ -56,11 +61,57 @@ public class MainActivity extends AppCompatActivity implements LocListenerInterf
         checkPermitions();
     }
 
+    private void updateDistance(Location location){
+        if(location.hasSpeed() && lastlocation != null){
+            if(distance>disTotal){
+                disTotal+= lastlocation.distanceTo(location);
+            }
+            if (disRest> 0){
+                disRest-= lastlocation.distanceTo(location);
+            }
+            progressBar.setProgress(disTotal);
+        }
+        lastlocation = location;
+        tvRest.setText(String.valueOf(disRest));
+        tvTotal.setText(String.valueOf(disTotal));
+        tvVelosity.setText(String.valueOf(location.getSpeed()));
+    }
+
+    private  void setDistance(String dis){
+        progressBar.setMax(Integer.parseInt(dis));
+        disRest = Integer.parseInt(dis);
+        distance = Integer.parseInt(dis);
+
+        tvRest.setText(dis);
+    }
+
     private void showDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.dialog_title);
-        //ConstraintLayout cl = (ConstraintLayout) getLayoutInflater().inflate()
+        ConstraintLayout cl = (ConstraintLayout) getLayoutInflater().inflate(R.layout.set_goal_distance,null);
+        builder.setPositiveButton(R.string.dialog_button, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                AlertDialog ad = (AlertDialog) dialog;
+                EditText ed = ad.findViewById(R.id.editTextText);
+                if(ed != null){
+                    if(!ed.getText().toString().equals("")){
+                        setDistance(ed.getText().toString());
+                    }
+                }
+            }
+        });
+        builder.setView(cl);
+
+        builder.show();
     }
+
+    public void onClickSetDistance(View view){
+        showDialog();
+    }
+
+
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults, int deviceId) {
@@ -86,11 +137,6 @@ public class MainActivity extends AppCompatActivity implements LocListenerInterf
 
     @Override
     public void OnLocztionChange(Location location) {
-        if(location.hasSpeed() && lastlocation != null){
-            distance+= lastlocation.distanceTo(location);
-        }
-        lastlocation = location;
-        tvdistance.setText(String.valueOf(distance));
-        tvVelocity.setText(String.valueOf(location.getSpeed()));
+        updateDistance(location);
     }
 }
